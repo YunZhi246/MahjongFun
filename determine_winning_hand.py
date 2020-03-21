@@ -1,54 +1,7 @@
 import copy
 import pprint
-from tile import Tile
-
-
-JINGTING_RULES = True
-
-
-class Hand:
-    def __init__(self, pair=None, triples=None, sequences=None, left=None):
-        self.pair = [] if pair is None else pair
-        self.triples = [] if triples is None else triples
-        self.sequences = [] if sequences is None else sequences
-        self.left = [] if left is None else left
-        self.name = "Pair: "+str(self.pair) + "  Triples: "+str(self.triples) + "  Sequences: "+str(self.sequences)
-        if len(self.left) > 0:
-            self.name = self.name + "  Left: "+str(self.left)
-        self.__has_terminals_winds_dragons = None
-
-    def __repr__(self):
-        return self.name
-
-    def __str__(self):
-        return self.name
-
-    def is_completed(self):
-        if len(self.left) != 0:
-            return False
-        if JINGTING_RULES:
-            if len(self.triples) == 0 or len(self.sequences) == 0:
-                return False
-            if not self.has_terminals_winds_dragons():
-                return False
-        return True
-
-    def has_terminals_winds_dragons(self):
-        if self.__has_terminals_winds_dragons is None:
-            for sg in self.sequences:
-                if any(Tile.is_terminal_wind_dragon_from_comparison_value(s) for s in sg):
-                    self.__has_terminals_winds_dragons = True
-                    return self.__has_terminals_winds_dragons
-
-            if len(self.pair) > 0 and Tile.is_terminal_wind_dragon_from_comparison_value(self.pair[0]):
-                self.__has_terminals_winds_dragons = True
-            elif any(Tile.is_terminal_wind_dragon_from_comparison_value(tg[0]) for tg in self.triples):
-                self.__has_terminals_winds_dragons = True
-            elif any(Tile.is_terminal_wind_dragon_from_comparison_value(l) for l in self.left):
-                self.__has_terminals_winds_dragons = True
-            else:
-                self.__has_terminals_winds_dragons = False
-        return self.__has_terminals_winds_dragons
+from hand import Hand
+from rules import Rules, RULES
 
 
 def get_pairs(nums_list):
@@ -110,7 +63,7 @@ def find_winning_hands(starting_hand):
     winning_hands = []
     completed = []
 
-    if JINGTING_RULES and not starting_hand.has_terminals_winds_dragons():
+    if RULES == Rules.Jingting and not starting_hand.has_terminals_winds_dragons():
         return winning_hands
 
     pairs = get_pairs(starting_hand.left)
@@ -158,27 +111,6 @@ def find_winning_hands(starting_hand):
     return winning_hands
 
 
-def print_converted_hand(hand):
-    pairs = []
-    triples = []
-    sequences = []
-    for p in hand.pair:
-        pairs.append(Tile.create_from_comparison_value(p))
-    for t in hand.triples:
-        row = []
-        for n in t:
-            row.append(Tile.create_from_comparison_value(n))
-        triples.append(row)
-    for s in hand.sequences:
-        row = []
-        for n in s:
-            row.append(Tile.create_from_comparison_value(n))
-        sequences.append(row)
-    print(pairs)
-    print(triples)
-    print(sequences)
-
-
 # Simple hand 1 [beginning terminal]
 raw_hand = [31, 31, 31, 31, 32, 32, 33, 33, 34, 34, 34]
 winnings = find_winning_hands(Hand(left=raw_hand))
@@ -220,4 +152,4 @@ winnings = find_winning_hands(Hand(left=raw_hand))
 pprint.pprint(winnings)
 assert len(winnings) == 1
 for w in winnings:
-    print_converted_hand(w)
+    w.print_converted()
