@@ -2,74 +2,21 @@ import copy
 import pprint
 from hand import Hand
 from rules import Rules, RULES
-
-
-def get_pairs(nums_list):
-    pairs = []
-    for num in set(nums_list):
-        if nums_list.count(num) >= 2:
-            pairs.append([num, num])
-    return pairs
-
-
-def get_triples(nums_list):
-    triples = []
-    for num in set(nums_list):
-        if nums_list.count(num) >= 3:
-            triples.append([num, num, num])
-    return triples
-
-
-def get_sequences(nums_list):
-    sequences = []
-    dedupped = sorted(list(set(nums_list)))
-    temp_seqs = [[dedupped[0]]]
-    for i in range(1, len(dedupped)):
-        last_num = dedupped[i-1]
-        if dedupped[i] != last_num+1:
-            temp_seqs = [[dedupped[i]]]
-            continue
-        temp = []
-        for s in temp_seqs:
-            s.append(dedupped[i])
-            if len(s) == 3:
-                sequences.append(s)
-            else:
-                temp.append(s)
-        temp_seqs = temp
-        temp_seqs.append([dedupped[i]])
-    return sequences
-
-
-def find_leftovers(combos, nums_list):
-    possibilities = []
-    for c in combos:
-        left = copy.deepcopy(nums_list)
-        for n in c:
-            left.remove(n)
-        possibilities.append((c, left))
-    return possibilities
-
-
-def leftover_sanity_check(leftovers):
-    counter = [0] * 5
-    for n in leftovers:
-        counter[(n//10)-1] += 1
-    return not(any(c % 3 != 0 for c in counter))
+from leftover_processor import LeftoverProcessor
 
 
 def find_winning_hands(starting_hand):
+    if RULES == Rules.Jingting and not starting_hand.has_terminals_winds_dragons():
+        return []
+
     options = []
     winning_hands = []
     completed = []
+    leftover_processor = LeftoverProcessor(starting_hand.left)
 
-    if RULES == Rules.Jingting and not starting_hand.has_terminals_winds_dragons():
-        return winning_hands
-
-    pairs = get_pairs(starting_hand.left)
-    combos = find_leftovers(pairs, starting_hand.left)
+    combos = leftover_processor.get_pairs()
     for c in combos:
-        if not leftover_sanity_check(c[1]):
+        if not LeftoverProcessor.leftover_sanity_check(c[1]):
             continue
         options.append(Hand(pair=c[0], left=c[1]))
 
@@ -77,11 +24,12 @@ def find_winning_hands(starting_hand):
         hand = options.pop(0)
         if len(hand.left) == 0:
             continue
-        triple_combos = find_leftovers(get_triples(hand.left), hand.left)
-        sequence_combos = find_leftovers(get_sequences(hand.left), hand.left)
+        leftover_processor = LeftoverProcessor(hand.left)
+        triple_combos = leftover_processor.get_triples()
+        sequence_combos = leftover_processor.get_sequences()
 
         for tc in triple_combos:
-            if not leftover_sanity_check(tc[1]):
+            if not LeftoverProcessor.leftover_sanity_check(tc[1]):
                 continue
             triples = copy.deepcopy(hand.triples)
             triples.append(tc[0])
@@ -95,7 +43,7 @@ def find_winning_hands(starting_hand):
             options.append(new_hand)
 
         for sc in sequence_combos:
-            if not leftover_sanity_check(sc[1]):
+            if not LeftoverProcessor.leftover_sanity_check(sc[1]):
                 continue
             seqs = copy.deepcopy(hand.sequences)
             seqs.append(sc[0])
