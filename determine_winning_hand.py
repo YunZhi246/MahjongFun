@@ -22,6 +22,11 @@ class Hand:
     def __str__(self):
         return self.name
 
+    def is_completed(self):
+        if JINGTING_RULES and (len(self.triples) == 0 or len(self.sequences) == 0):
+            return False
+        return len(self.left) == 0
+
 
 def check_terminals_winds_dragons(num_list):
     for n in num_list:
@@ -73,8 +78,19 @@ def find_leftovers(combos, nums_list):
         left = copy.deepcopy(nums_list)
         for n in c:
             left.remove(n)
-        possibilities.append((c, left))
+        if leftover_sanity_check(left):
+            possibilities.append((c, left))
     return possibilities
+
+
+def leftover_sanity_check(leftovers):
+    counter = [0] * 5
+    for n in leftovers:
+        counter[(n//10)-1] += 1
+    for c in counter:
+        if c%3 != 0:
+            return False
+    return True
 
 
 def find_winning_hands(nums_list):
@@ -92,6 +108,8 @@ def find_winning_hands(nums_list):
 
     while len(options) > 0:
         hand = options.pop(0)
+        if len(hand.left) == 0:
+            continue
         triple_combos = find_leftovers(get_triples(hand.left), hand.left)
         sequence_combos = find_leftovers(get_sequences(hand.left), hand.left)
 
@@ -99,10 +117,7 @@ def find_winning_hands(nums_list):
             triples = copy.deepcopy(hand.triples)
             triples.append(tc[0])
             new_hand = Hand(hand.pair, triples, hand.sequences, tc[1])
-            if len(tc[1]) == 0:
-                if JINGTING_RULES:
-                    if len(new_hand.sequences) == 0:
-                        continue
+            if new_hand.is_completed():
                 s_defined = sorted(triples + hand.sequences)
                 if not (s_defined in completed):
                     winning_hands.append(new_hand)
@@ -114,10 +129,7 @@ def find_winning_hands(nums_list):
             seqs = copy.deepcopy(hand.sequences)
             seqs.append(sc[0])
             new_hand = Hand(hand.pair, hand.triples, seqs, sc[1])
-            if len(sc[1]) == 0:
-                if JINGTING_RULES:
-                    if len(new_hand.triples) == 0:
-                        continue
+            if new_hand.is_completed():
                 s_defined = sorted(seqs + hand.triples)
                 if not (s_defined in completed):
                     winning_hands.append(new_hand)
@@ -126,6 +138,27 @@ def find_winning_hands(nums_list):
             options.append(new_hand)
 
     return winning_hands
+
+
+def print_converted_hand(hand):
+    pairs = []
+    triples = []
+    sequences = []
+    for p in hand.pair:
+        pairs.append(Tile.create_from_comparison_value(p))
+    for t in hand.triples:
+        row = []
+        for n in t:
+            row.append(Tile.create_from_comparison_value(n))
+        triples.append(row)
+    for s in hand.sequences:
+        row = []
+        for n in s:
+            row.append(Tile.create_from_comparison_value(n))
+        sequences.append(row)
+    print(pairs)
+    print(triples)
+    print(sequences)
 
 
 # Simple hand 1 [beginning terminal]
@@ -167,23 +200,6 @@ assert len(winnings) == 0
 raw_hand = [17, 17, 25, 25, 25, 32, 33, 34, 45, 45, 45, 57, 58, 59]
 winnings = find_winning_hands(raw_hand)
 pprint.pprint(winnings)
-for w in winnings:
-    pairs = []
-    triples = []
-    sequences = []
-    for p in w.pair:
-        pairs.append(Tile.create_from_comparison_value(p))
-    for t in w.triples:
-        row = []
-        for n in t:
-            row.append(Tile.create_from_comparison_value(n))
-        triples.append(row)
-    for s in w.sequences:
-        row = []
-        for n in s:
-            row.append(Tile.create_from_comparison_value(n))
-        sequences.append(row)
-    print(pairs)
-    print(triples)
-    print(sequences)
 assert len(winnings) == 1
+for w in winnings:
+    print_converted_hand(w)
