@@ -1,5 +1,7 @@
+import copy
 from tile import Tile
 from rules import Rules, RULES
+from leftover_processor import LeftoverProcessor
 
 
 class Hand:
@@ -12,6 +14,7 @@ class Hand:
         if len(self.left) > 0:
             self.name = self.name + "  Left: "+str(self.left)
         self.__has_terminals_winds_dragons = None
+        self.__waiting = None
 
     def __repr__(self):
         return self.name
@@ -45,6 +48,40 @@ class Hand:
             else:
                 self.__has_terminals_winds_dragons = False
         return self.__has_terminals_winds_dragons
+
+    def is_one_off(self):
+        if self.__waiting is None:
+            self.waiting()
+        if len(self.__waiting) == 0:
+            return False
+        return True
+
+    def waiting(self):
+        if self.__waiting is None and (len(self.left) > 3 or len(self.left) == 0):
+            self.__waiting = []
+        elif self.__waiting is None:
+            waiting = []
+            leftover_processor = LeftoverProcessor(self.left)
+            if len(self.left) == 2:
+                possible_pairs = leftover_processor.create_pairs()
+                for pp in possible_pairs:
+                    if Hand(pair=pp[0], triples=self.triples, sequences=self.sequences).is_completed():
+                        waiting.append(pp[1])
+            elif len(self.left) == 3:
+                possible_triples = leftover_processor.create_triples()
+                possible_sequences = leftover_processor.create_sequences()
+                for pt in possible_triples:
+                    triples = copy.deepcopy(self.triples)
+                    triples.append(pt[0])
+                    if Hand(pair=self.pair, triples=triples, sequences=self.sequences).is_completed():
+                        waiting.append(pt[1])
+                for ps in possible_sequences:
+                    sequences = copy.deepcopy(self.sequences)
+                    sequences.append(ps[0])
+                    if Hand(pair=self.pair, triples=self.triples, sequences=sequences).is_completed():
+                        waiting.append(ps[1])
+            self.__waiting = sorted(list(set(waiting)))
+        return self.__waiting
 
     def print_converted(self):
         pairs = []

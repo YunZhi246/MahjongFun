@@ -1,5 +1,4 @@
 import copy
-import pprint
 from hand import Hand
 from rules import Rules, RULES
 from leftover_processor import LeftoverProcessor
@@ -12,8 +11,8 @@ def find_winning_hands(starting_hand):
     options = []
     winning_hands = []
     completed = []
-    leftover_processor = LeftoverProcessor(starting_hand.left)
 
+    leftover_processor = LeftoverProcessor(starting_hand.left)
     combos = leftover_processor.get_pairs()
     for c in combos:
         if not LeftoverProcessor.leftover_sanity_check(c[1]):
@@ -97,7 +96,4 @@ assert len(winnings) == 0
 # Full hand
 raw_hand = [17, 17, 25, 25, 25, 32, 33, 34, 45, 45, 45, 57, 58, 59]
 winnings = find_winning_hands(Hand(left=raw_hand))
-pprint.pprint(winnings)
 assert len(winnings) == 1
-for w in winnings:
-    w.print_converted()
