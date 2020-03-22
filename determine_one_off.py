@@ -10,31 +10,31 @@ def is_one_off(starting_hand):
 
     while len(options) > 0:
         hand = options.pop(0)
-        if len(hand.left) <= 3:
-            s_defined = sorted([hand.pair] + hand.triples + hand.sequences)
+        if hand.get_left_length() <= 3:
+            s_defined = sorted([hand.get_pair()] + hand.get_triples() + hand.get_sequences())
             if not (s_defined in checked):
                 if hand.is_one_off():
-                    waiting.extend(hand.waiting())
+                    waiting.extend(hand.get_waiting())
                 checked.append(s_defined)
             continue
 
-        leftover_processor = LeftoverProcessor(hand.left)
-        if len(hand.pair) == 0:
+        leftover_processor = LeftoverProcessor(hand.get_left())
+        if len(hand.get_pair()) == 0:
             pair_combos = leftover_processor.get_pairs()
             for pc in pair_combos:
-                options.append(Hand(pair=pc[0], triples=hand.triples, sequences=hand.sequences, left=pc[1]))
+                options.append(Hand(pair=pc[0], triples=hand.get_triples(), sequences=hand.get_sequences(), left=pc[1]))
 
         triple_combos = leftover_processor.get_triples()
         sequence_combos = leftover_processor.get_sequences()
         for tc in triple_combos:
-            triples = copy.deepcopy(hand.triples)
+            triples = hand.get_triples()
             triples.append(tc[0])
-            new_hand = Hand(pair=hand.pair, triples=triples, sequences=hand.sequences, left=tc[1])
+            new_hand = Hand(pair=hand.get_pair(), triples=triples, sequences=hand.get_sequences(), left=tc[1])
             options.append(new_hand)
         for sc in sequence_combos:
-            seqs = copy.deepcopy(hand.sequences)
+            seqs = hand.get_sequences()
             seqs.append(sc[0])
-            new_hand = Hand(pair=hand.pair, triples=hand.triples, sequences=seqs, left=sc[1])
+            new_hand = Hand(pair=hand.get_pair(), triples=hand.get_triples(), sequences=seqs, left=sc[1])
             options.append(new_hand)
 
     if not waiting:

@@ -12,7 +12,7 @@ def find_winning_hands(starting_hand):
     winning_hands = []
     completed = []
 
-    leftover_processor = LeftoverProcessor(starting_hand.left)
+    leftover_processor = LeftoverProcessor(starting_hand.get_left())
     combos = leftover_processor.get_pairs()
     for c in combos:
         if not LeftoverProcessor.leftover_sanity_check(c[1]):
@@ -21,20 +21,21 @@ def find_winning_hands(starting_hand):
 
     while len(options) > 0:
         hand = options.pop(0)
-        if len(hand.left) == 0:
+        if hand.get_left_length() == 0:
             continue
-        leftover_processor = LeftoverProcessor(hand.left)
+        leftover_processor = LeftoverProcessor(hand.get_left())
         triple_combos = leftover_processor.get_triples()
         sequence_combos = leftover_processor.get_sequences()
 
         for tc in triple_combos:
             if not LeftoverProcessor.leftover_sanity_check(tc[1]):
                 continue
-            triples = copy.deepcopy(hand.triples)
+            triples = hand.get_triples()
             triples.append(tc[0])
-            new_hand = Hand(pair=hand.pair, triples=triples, sequences=hand.sequences, left=tc[1])
+            sequences = hand.get_sequences()
+            new_hand = Hand(pair=hand.get_pair(), triples=triples, sequences=sequences, left=tc[1])
             if new_hand.is_completed():
-                s_defined = sorted(triples + hand.sequences)
+                s_defined = sorted(triples + sequences)
                 if not (s_defined in completed):
                     winning_hands.append(new_hand)
                     completed.append(s_defined)
@@ -44,11 +45,12 @@ def find_winning_hands(starting_hand):
         for sc in sequence_combos:
             if not LeftoverProcessor.leftover_sanity_check(sc[1]):
                 continue
-            seqs = copy.deepcopy(hand.sequences)
-            seqs.append(sc[0])
-            new_hand = Hand(pair=hand.pair, triples=hand.triples, sequences=seqs, left=sc[1])
+            triples = hand.get_triples()
+            sequences = hand.get_sequences()
+            sequences.append(sc[0])
+            new_hand = Hand(pair=hand.get_pair(), triples=hand.get_triples(), sequences=sequences, left=sc[1])
             if new_hand.is_completed():
-                s_defined = sorted(seqs + hand.triples)
+                s_defined = sorted(sequences + triples)
                 if not (s_defined in completed):
                     winning_hands.append(new_hand)
                     completed.append(s_defined)

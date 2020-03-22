@@ -22,26 +22,35 @@ class Tile:
         WHITE = 5
 
     def __init__(self, suite, value):
-        self.suite = suite
-        self.value = value
-        self.comparison_value = (self.suite * 10) + self.value
-        if self.suite == Tile.Suite.WIND or self.suite == Tile.Suite.DRAGON:
-            str_value = self.value.name
+        self.__suite = suite
+        self.__value = value
+        self.__comparison_value = (self.__suite * 10) + self.__value
+        if self.__suite == Tile.Suite.WIND or self.__suite == Tile.Suite.DRAGON:
+            str_value = self.__value.name
         else:
-            str_value = str(self.value)
-        self.name = self.suite.name + " - " + str_value
+            str_value = str(self.__value)
+        self.__name = self.__suite.name + " - " + str_value
 
     def __repr__(self):
-        return self.name
+        return self.__name
 
     def __str__(self):
-        return self.name
+        return self.__name
 
     def __eq__(self, other):
-        return self.comparison_value == other.comparison_value
+        return self.__comparison_value == other.get_comparison_value()
 
     def __lt__(self, other):
-        return self.comparison_value < other.comparison_value
+        return self.__comparison_value < other.get_comparison_value()
+
+    def get_suite(self):
+        return self.__suite
+
+    def get_value(self):
+        return self.__value
+
+    def get_comparison_value(self):
+        return self.__comparison_value
 
     @staticmethod
     def is_terminal_wind_dragon_from_comparison_value(comparison_value):
@@ -88,17 +97,17 @@ st2 = Tile(Tile.Suite.STICK, 2)
 # nu3 = Tile(Tile.Suite.NUM, 3)
 # nu4 = Tile(Tile.Suite.NUM, 4)
 nu9 = Tile(Tile.Suite.NUM, 9)
-#
+
 # lt = [w1, w2, w3, w4, d1, d2, d3, do1, do2, do3, do4, do5, st1, st2, st3, st4, st5, nu1, nu2, nu3, nu4, nu9]
 
-assert Tile.is_terminal_wind_dragon_from_comparison_value(w1.comparison_value)
-assert Tile.is_terminal_wind_dragon_from_comparison_value(d1.comparison_value)
-assert Tile.is_terminal_wind_dragon_from_comparison_value(do1.comparison_value)
-assert not(Tile.is_terminal_wind_dragon_from_comparison_value(st2.comparison_value))
-assert Tile.is_terminal_wind_dragon_from_comparison_value(nu9.comparison_value)
+assert Tile.is_terminal_wind_dragon_from_comparison_value(w1.get_comparison_value())
+assert Tile.is_terminal_wind_dragon_from_comparison_value(d1.get_comparison_value())
+assert Tile.is_terminal_wind_dragon_from_comparison_value(do1.get_comparison_value())
+assert not(Tile.is_terminal_wind_dragon_from_comparison_value(st2.get_comparison_value()))
+assert Tile.is_terminal_wind_dragon_from_comparison_value(nu9.get_comparison_value())
 
-assert Tile.create_from_comparison_value(w1.comparison_value) == w1
-assert Tile.create_from_comparison_value(d1.comparison_value) == d1
-assert Tile.create_from_comparison_value(do1.comparison_value) == do1
-assert Tile.create_from_comparison_value(st2.comparison_value) == st2
-assert Tile.create_from_comparison_value(nu9.comparison_value) == nu9
+assert Tile.create_from_comparison_value(w1.get_comparison_value()) == w1
+assert Tile.create_from_comparison_value(d1.get_comparison_value()) == d1
+assert Tile.create_from_comparison_value(do1.get_comparison_value()) == do1
+assert Tile.create_from_comparison_value(st2.get_comparison_value()) == st2
+assert Tile.create_from_comparison_value(nu9.get_comparison_value()) == nu9
